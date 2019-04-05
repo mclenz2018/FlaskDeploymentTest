@@ -10,7 +10,9 @@ def index():
     email_address = request.cookies.get("email")
 
     if email_address:
-        user = User.fetch_one(query=["email", "==", email_address])#Speicherung in das Feld email der Klasse User
+        #user = User.fetch_one(query=["email", "==", email_address])#Speicherung in das Feld email der Klasse User
+        # find user by email in the database
+        user = User.get_collection().find_one({"email": email_address})
     else:
         user = None
 
@@ -26,12 +28,14 @@ def login():
     secret_number = random.randint(1, 30)
 
     # see if user already exists
-    user = User.fetch_one(query=["email", "==", email])
+    #user = User.fetch_one(query=["email", "==", email])
+    user = User.get_collection().find_one({"email": email})
 
     if not user:
         # create a User object
         user = User(name=name, email=email, secret_number=secret_number)
-        user.create()  # save the object into a databa  se
+        #user.create()  # save the object into a database
+        User.get_collection().insert_one(user.__dict__)
 
     # save user's email into a cookie
     response = make_response(redirect(url_for('index')))
@@ -47,7 +51,8 @@ def result():
     email_address = request.cookies.get("email")
 
     # get user from the database based on her/his email address
-    user = User.fetch_one(query=["email", "==", email_address])
+    #user = User.fetch_one(query=["email", "==", email_address])
+    user = User.get_collection().find_one({"email": email_address})
 
     if guess == user.secret_number:
         message = "Correct! The secret number is {0}".format(str(guess))
